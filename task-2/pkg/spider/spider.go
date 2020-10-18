@@ -7,15 +7,20 @@ import (
 	"golang.org/x/net/html"
 )
 
-func Scan(url string, depth int) (data map[string]string, err error) {
-	data = make(map[string]string)
+type pageData struct {
+	Title string
+	Text  string
+}
 
-	parse(url, url, depth, data)
+func Scan(url string, depth int) (data map[string]pageData, err error) {
+	data = make(map[string]pageData)
+
+	parse(url, depth, data)
 
 	return data, nil
 }
 
-func parse(url, baseurl string, depth int, data map[string]string) error {
+func parse(url string, depth int, data map[string]pageData) error {
 	if depth == 0 {
 		return nil
 	}
@@ -28,23 +33,49 @@ func parse(url, baseurl string, depth int, data map[string]string) error {
 	if err != nil {
 		return err
 	}
+	text := pageText(page, []string{})
 
-	data[url] = pageTitle(page)
+	data[url] = pageData{
+		Title: pageTitle(page),
+		Text:  strings.Join(text, ""),
+	}
 
 	links := pageLinks(nil, page)
 	for _, link := range links {
-		if data[link] == "" && strings.HasPrefix(link, baseurl) {
-			parse(link, baseurl, depth-1, data)
+		_, exists := data[link]
+
+		if !exists && strings.HasPrefix(link, "http") {
+			parse(link, depth-1, data)
 		}
 	}
 
 	return nil
 }
 
+func pageText(n *html.Node, words []string) []string {
+	if n.Type == html.TextNode {
+		words = append(words, n.Data)
+	}
+
+	if n.Type == html.ElementNode && n.Data == "script" {
+		return words
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		words = pageText(c, words)
+	}
+
+	return words
+}
+
 func pageTitle(n *html.Node) string {
 	var title string
 	if n.Type == html.ElementNode && n.Data == "title" {
-		return n.FirstChild.Data
+		if n.FirstChild == nil {
+			return "Untitled"
+		} else {
+			return n.FirstChild.Data
+		}
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		title = pageTitle(c)
