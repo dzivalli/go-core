@@ -7,20 +7,25 @@ import (
 	"golang.org/x/net/html"
 )
 
-type pageData struct {
+type PageData struct {
 	Title string
 	Text  string
 }
 
-func Scan(url string, depth int) (data map[string]pageData, err error) {
-	data = make(map[string]pageData)
+type Spider struct {
+	Url   string
+	Depth int
+}
 
-	parse(url, depth, data)
+func (s Spider) Scan() (data map[string]PageData, err error) {
+	data = make(map[string]PageData)
+
+	parse(s.Url, s.Depth, data)
 
 	return data, nil
 }
 
-func parse(url string, depth int, data map[string]pageData) error {
+func parse(url string, depth int, data map[string]PageData) error {
 	if depth == 0 {
 		return nil
 	}
@@ -35,7 +40,7 @@ func parse(url string, depth int, data map[string]pageData) error {
 	}
 	text := pageText(page, []string{})
 
-	data[url] = pageData{
+	data[url] = PageData{
 		Title: pageTitle(page),
 		Text:  strings.Join(text, ""),
 	}

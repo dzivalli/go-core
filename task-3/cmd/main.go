@@ -6,12 +6,24 @@ import (
 	"task-3/pkg/spider"
 )
 
+type Scanner interface {
+	Scan() (map[string]spider.PageData, error)
+}
+
 func main() {
+	s := spider.Spider{
+		Url:   "https://golang.org/",
+		Depth: 2,
+	}
+
+	run(s)
+}
+
+func run(s Scanner) {
 	var searchKeyword string
 	var found bool
 
-	url := "https://golang.org/"
-	sites, err := spider.Scan(url, 2)
+	sites, err := s.Scan()
 
 	if err != nil {
 		return
