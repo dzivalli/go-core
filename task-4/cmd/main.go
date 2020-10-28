@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"task-4/pkg/indexer"
 	"task-4/pkg/spider"
 )
 
@@ -21,30 +21,30 @@ func main() {
 
 func parseSite(s Scanner) {
 	var searchKeyword string
-	var found bool
 
-	sites, err := s.Scan()
+	pagesData, err := s.Scan()
 
 	if err != nil {
 		return
 	}
 
-	fmt.Printf("Scan completed, %v sites found\n", len(sites))
+	fmt.Printf("Scan completed, %v sites found\n", len(pagesData))
+
+	index := indexer.CreateIndex(pagesData)
 
 	for {
-		found = false
 		fmt.Print("Please enter search keyword (exit - ^C): ")
 		fmt.Scanf("%s", &searchKeyword)
 
-		for url, pageData := range sites {
-			if strings.Index(pageData.Text, searchKeyword) > 0 {
-				found = true
-				fmt.Printf("Found %v - %v\n", url, pageData.Title)
-			}
+		urls, ok := index[searchKeyword]
+
+		if !ok {
+			fmt.Println("Nothing found")
 		}
 
-		if !found {
-			fmt.Println("Nothing found")
+		for i := range urls {
+			url := urls[i]
+			fmt.Printf("Found %v - %v\n", url, pagesData[url].Title)
 		}
 	}
 }
