@@ -12,14 +12,14 @@ type Scanner interface {
 
 func main() {
 	s := spider.Spider{
-		Url:   "https://golang.org/",
-		Depth: 2,
+		Url:   "https://golang.org",
+		Depth: 3,
 	}
 
-	run(s)
+	parseSite(s)
 }
 
-func run(s Scanner) {
+func parseSite(s Scanner) {
 	var searchKeyword string
 	var found bool
 

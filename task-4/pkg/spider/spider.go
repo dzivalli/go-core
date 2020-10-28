@@ -17,15 +17,16 @@ type Spider struct {
 	Depth int
 }
 
+// parse given url recursively with given depth
 func (s Spider) Scan() (data map[string]PageData, err error) {
 	data = make(map[string]PageData)
 
-	parse(s.Url, s.Depth, data)
+	parse(s.Url, s.Url, s.Depth, data)
 
 	return data, nil
 }
 
-func parse(url string, depth int, data map[string]PageData) error {
+func parse(url string, baseurl string, depth int, data map[string]PageData) error {
 	if depth == 0 {
 		return nil
 	}
@@ -45,10 +46,11 @@ func parse(url string, depth int, data map[string]PageData) error {
 		Text:  strings.Join(text, ""),
 	}
 
-	links := pageLinks(nil, page)
-	for _, link := range links {
-		if _, exists := data[link]; !exists && strings.HasPrefix(link, "http") {
-			parse(link, depth-1, data)
+	links := pageRelativeLinks(nil, page)
+	for _, relativeLink := range links {
+		link := baseurl + relativeLink
+		if _, ok := data[link]; !ok {
+			parse(link, baseurl, depth-1, data)
 		}
 	}
 
@@ -89,18 +91,18 @@ func pageTitle(n *html.Node) string {
 	return title
 }
 
-func pageLinks(links []string, n *html.Node) []string {
+func pageRelativeLinks(links []string, n *html.Node) []string {
 	if n.Type == html.ElementNode && n.Data == "a" {
 		for _, a := range n.Attr {
 			if a.Key == "href" {
-				if !sliceContains(links, a.Val) {
+				if !strings.HasPrefix(a.Val, "http") && !sliceContains(links, a.Val) {
 					links = append(links, a.Val)
 				}
 			}
 		}
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		links = pageLinks(links, c)
+		links = pageRelativeLinks(links, c)
 	}
 	return links
 }
