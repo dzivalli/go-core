@@ -12,8 +12,7 @@ func CreateIndex(data map[string]spider.PageData) map[string][]string {
 	for url, pageData := range data {
 		pageWords := words(pageData.Text)
 
-		for i := range pageWords {
-			word := pageWords[i]
+		for _, word := range pageWords {
 			if containString(index[word], url) {
 				continue
 			}

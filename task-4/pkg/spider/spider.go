@@ -18,15 +18,15 @@ type Spider struct {
 }
 
 // parse given url recursively with given depth
-func (s Spider) Scan() (data map[string]PageData, err error) {
-	data = make(map[string]PageData)
+func (s Spider) Scan() (pagesData map[string]PageData, err error) {
+	pagesData = make(map[string]PageData)
 
-	parse(s.Url, s.Url, s.Depth, data)
+	parse(s.Url, s.Url, s.Depth, pagesData)
 
-	return data, nil
+	return pagesData, nil
 }
 
-func parse(url string, baseurl string, depth int, data map[string]PageData) error {
+func parse(url string, baseurl string, depth int, pagesData map[string]PageData) error {
 	if depth == 0 {
 		return nil
 	}
@@ -41,7 +41,7 @@ func parse(url string, baseurl string, depth int, data map[string]PageData) erro
 	}
 	text := pageText(page, []string{})
 
-	data[url] = PageData{
+	pagesData[url] = PageData{
 		Title: pageTitle(page),
 		Text:  strings.Join(text, ""),
 	}
@@ -49,8 +49,8 @@ func parse(url string, baseurl string, depth int, data map[string]PageData) erro
 	links := pageRelativeLinks(nil, page)
 	for _, relativeLink := range links {
 		link := baseurl + relativeLink
-		if _, ok := data[link]; !ok {
-			parse(link, baseurl, depth-1, data)
+		if _, ok := pagesData[link]; !ok {
+			parse(link, baseurl, depth-1, pagesData)
 		}
 	}
 

@@ -42,8 +42,7 @@ func parseSite(s Scanner) {
 			fmt.Println("Nothing found")
 		}
 
-		for i := range urls {
-			url := urls[i]
+		for _, url := range urls {
 			fmt.Printf("Found %v - %v\n", url, pagesData[url].Title)
 		}
 	}
